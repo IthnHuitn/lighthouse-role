@@ -1,0 +1,57 @@
+---
+- name: Install required packages
+  ansible.builtin.dnf:
+    name:
+      - nginx
+      - git
+      - rsync
+    state: present
+  tags:
+    - packages
+
+- name: Clone Lighthouse repository
+  ansible.builtin.git:
+    repo: "{{ lighthouse_repo }}"
+    dest: "{{ lighthouse_dir }}"
+    version: master
+    force: true
+  notify:
+    - Synchronize Lighthouse files
+    - Fix app.js proxy
+    - Set Nginx permissions
+    - Restart nginx service
+  tags:
+    - download
+
+- name: Remove default Nginx config
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d/default.conf
+    state: absent
+  tags:
+    - config
+
+- name: Configure Nginx for Lighthouse
+  ansible.builtin.template:
+    src: lighthouse.nginx.conf.j2
+    dest: /etc/nginx/conf.d/lighthouse.conf
+    mode: '0644'
+  notify: Restart nginx service
+  tags:
+    - config
+
+- name: Configure SELinux for Nginx
+  ansible.builtin.shell: |
+    setsebool -P httpd_can_network_connect 1
+    restorecon -Rv {{ nginx_html_dir }}/
+  changed_when: false
+  failed_when: false
+  tags:
+    - selinux
+
+- name: Start and enable Nginx service
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+  tags:
+    - service

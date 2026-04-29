@@ -1,0 +1,29 @@
+---
+- name: Restart nginx service
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+    daemon_reload: true
+
+- name: Synchronize Lighthouse files
+  ansible.posix.synchronize:
+    src: "{{ lighthouse_dir }}/"
+    dest: "{{ nginx_html_dir }}/"
+    archive: true
+    delete: true
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: Fix app.js proxy
+  ansible.builtin.lineinfile:
+    path: "{{ nginx_html_dir }}/app.js"
+    regexp: 'db_host = prompt'
+    line: "    db_host = prompt('Host:', '/clickhouse');"
+
+- name: Set Nginx permissions
+  ansible.builtin.file:
+    path: "{{ nginx_html_dir }}"
+    state: directory
+    mode: '0755'
+    owner: nginx
+    group: nginx
+    recurse: true

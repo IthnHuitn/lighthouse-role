@@ -1,0 +1,5 @@
+---
+lighthouse_repo: "https://github.com/VKCOM/lighthouse.git"
+lighthouse_dir: "/opt/lighthouse"
+nginx_html_dir: "/usr/share/nginx/html"
+clickhouse_host: "127.0.0.1"
