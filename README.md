@@ -1,38 +1,74 @@
-Role Name
-=========
+# Lighthouse Role
 
-A brief description of the role goes here.
+Роль Ansible для установки и настройки Lighthouse — веб-интерфейса для ClickHouse с использованием Nginx.
 
-Requirements
-------------
+## Что делает роль
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+1. Устанавливает Nginx, Git и rsync
+2. Клонирует репозиторий [Lighthouse](https://github.com/VKCOM/lighthouse)
+3. Копирует статические файлы в директорию Nginx
+4. Настраивает проксирование запросов к ClickHouse
+5. Настраивает SELinux и права доступа
+6. Запускает Nginx
 
-Role Variables
---------------
+## Требования
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+- Ansible 2.9+
+- ClickHouse должен быть установлен и доступен по сети (порт 8123)
+- Доступ к GitHub для клонирования репозитория
 
-Dependencies
-------------
+## Переменные
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+### defaults/main.yml
 
-Example Playbook
-----------------
+| Переменная | Значение по умолчанию | Описание |
+|------------|------------------------|----------|
+| `lighthouse_repo` | `https://github.com/VKCOM/lighthouse.git` | Репозиторий Lighthouse |
+| `lighthouse_dir` | `/opt/lighthouse` | Директория установки Lighthouse |
+| `nginx_html_dir` | `/usr/share/nginx/html` | Директория Nginx для статики |
+| `clickhouse_host` | `127.0.0.1` | Адрес ClickHouse |
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+### Обязательные переменные (из playbook)
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+| Переменная | Описание |
+|------------|----------|
+| `clickhouse_host` | IP-адрес или хост ClickHouse |
 
-License
--------
+## Использование
 
-BSD
+```yaml
+- hosts: lighthouse
+  become: true
+  roles:
+    - role: lighthouse-role
+      vars:
+        clickhouse_host: "IP-adress" # ваш IP адрес хоста
+```
 
-Author Information
-------------------
+## Теги
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```text
+Тег	      | Описание
+packages	| Установка зависимостей
+download	| Клонирование репозитория Lighthouse
+config	  | Настройка Nginx
+selinux	  | Настройка SELinux
+service	  | Запуск Nginx
+```
+
+## Проверка работы
+
+После установки откройте в браузере:
+```text
+http://<IP_адрес_хоста>
+```
+
+## Установка
+
+```bash
+ansible-galaxy install git+https://github.com/IthnHuitn/lighthouse-role.git
+```
+
+## Автор 
+
+## `IthnHuitn`
